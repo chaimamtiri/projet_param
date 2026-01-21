@@ -1,0 +1,99 @@
+=====================================================================
+Tests du composant Ctl_Flags_APSR (APSR Flags Register) - NZCV
+=====================================================================
+
+But :
+- Vérifier que le registre de flags (NZCV) se met à jour au front d’horloge
+- Vérifier que Reset remet bien Flags_Out à 0000
+- Vérifier que Update_Mask permet de mettre à jour seulement certains bits :
+    * Update_Mask[i] = 1  -> Flags_Out[i] prend Flags_In[i]
+    * Update_Mask[i] = 0  -> Flags_Out[i] garde sa valeur précédente
+
+Signaux :
+- Flags_In[4] : bus 4 bits (ordre NZCV dans le projet)
+- Update_Mask[4] : bus 4 bits (ordre NZCV)
+- Clk : horloge
+- Rst : reset
+- Flags_Out[4] : sortie du registre
+
+Important :
+- Le registre ne change QUE sur un front d’horloge (0 -> 1).
+- Entre deux fronts, Flags_Out reste constant.
+- En test manuel, on clique sur Clk pour provoquer un front.
+
+---------------------------------------------------------------------
+TEST 1 : Reset
+---------------------------------------------------------------------
+1) Mettre Rst = 1
+2) Provoquer un front d’horloge (cliquer Clk une fois)
+Attendu :
+- Flags_Out = 0000
+
+3) Mettre Rst = 0 (sortie de reset)
+Attendu :
+- Flags_Out reste 0000 tant qu’on ne reclique pas l’horloge
+
+---------------------------------------------------------------------
+TEST 2 : Écriture complète (mask = 1111)
+---------------------------------------------------------------------
+1) Mettre Rst = 0
+2) Mettre Update_Mask = 1111 (mise à jour de tous les bits)
+3) Mettre Flags_In = 1010 (exemple)
+4) Provoquer un front d’horloge (cliquer Clk une fois)
+Attendu :
+- Flags_Out = 1010
+
+---------------------------------------------------------------------
+TEST 3 : Hold (mask = 0000)
+---------------------------------------------------------------------
+Objectif : vérifier qu’avec Update_Mask=0000, aucune mise à jour ne se fait.
+
+1) Partir de l’état obtenu au TEST 2 : Flags_Out = 1010
+2) Mettre Update_Mask = 0000
+3) Changer Flags_In (exemple : Flags_In = 0101)
+4) Provoquer un front d’horloge
+Attendu :
+- Flags_Out reste = 1010 (aucun bit ne change)
+
+---------------------------------------------------------------------
+TEST 4 : Mise à jour d’un seul bit (exemple : Z)
+---------------------------------------------------------------------
+Objectif : vérifier qu’un seul bit est modifié et que les autres restent.
+
+1) Partir de Flags_Out connu (ex : 1010)
+2) Mettre Update_Mask = 0100  (mise à jour du bit Z uniquement)
+3) Mettre Flags_In = 0100     (Z=1)
+4) Provoquer un front d’horloge
+Attendu :
+- Flags_Out change uniquement sur Z
+- Les autres bits (N,C,V) restent identiques à avant
+
+Remarque :
+- Si dans ton affichage/probe tu ne sais pas quel bit correspond à N/Z/C/V,
+  fais ce test pour chaque bit (masque 1000 puis 0100 puis 0010 puis 0001)
+  et note lequel change. Cela confirme aussi l’ordre NZCV.
+
+---------------------------------------------------------------------
+TEST 5 : Masque mixte (exemple : 1001)
+---------------------------------------------------------------------
+Objectif : vérifier que deux bits changent et deux restent.
+
+1) Partir de Flags_Out = 1010
+2) Mettre Update_Mask = 1001 (mise à jour de N et V seulement)
+3) Mettre Flags_In = 0101
+4) Provoquer un front d’horloge
+Attendu :
+- Les bits sélectionnés par le masque (N et V) prennent la valeur de Flags_In
+- Les bits non sélectionnés (Z et C) restent comme avant
+
+---------------------------------------------------------------------
+Conclusion
+---------------------------------------------------------------------
+Si tous les tests ci-dessus sont corrects :
+- Reset fonctionne
+- L’écriture se fait au front d’horloge
+- Update_Mask fonctionne (mise à jour partielle)
+=> Le composant Ctl_Flags_APSR est validé.
+
+=====================================================================
+

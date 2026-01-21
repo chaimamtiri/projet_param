@@ -1,0 +1,18 @@
+Opcode[6] Shift[1] Data_Processing[1] Load_Store[1] SP_Address[1] Conditional[1]
+
+# Cas neutre (rien)
+011111 0 0 0 0 0
+
+# Shift : uniquement 000000 (comme ton circuit)
+000000 1 0 0 0 0
+
+# Data Processing : 010000
+010000 0 1 0 0 0
+
+# Load/Store : 100100 et 100111 (ceux qui passent chez toi)
+100100 0 0 1 0 0
+100111 0 0 1 0 0
+
+# SP Address : 101100
+101100 0 0 0 1 0
+
